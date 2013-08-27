@@ -1,15 +1,16 @@
 SparseBitSet
 ============
 
+### TL;DR
+Basically, if you need to set a large number of bits, or bits at extremely high offsets, you probably want to use this 
+Sparse BitSet.  All other alternatives are essentialy off the table; the Java BitSet class is a non-starter.
+
 ### Preface
 You know how the internets are; a link that exists today is gone tomorrow.  A while ago I had a need for an efficient
 Sparse BitSet in Java, and found a presentation and code by Dr. Bruce K. Haddon.  Going back later, I found the links
 I had used to find it were dead.  Some internet sleuthing later, I found and contacted Dr. Haddon and he was kind enough
 to send me the presentation again.  I have created this project to capture the code for others, as well as the
 presentation.  I can take credit for neither.
-
-### TL;DR
-Basically, you probably want to use this Sparse BitSet rather than the standard Java BitSet.
 
 ### The Problem and Alternatives
 The standard Java BitSet is terribly memory inefficient.  To store a single bit using BitSet at bit 2<sup>32</sup>-1 takes
