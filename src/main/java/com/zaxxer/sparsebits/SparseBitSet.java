@@ -1,5 +1,5 @@
 // CHECKSTYLE:OFF
-package org.brettw;
+package com.zaxxer.sparsebits;
 
 /*- This software is the work of Paladin Software International, Incorporated,
  *  based upon previous work done for and by Sun Microsystems, Inc. */
