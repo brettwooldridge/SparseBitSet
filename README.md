@@ -13,6 +13,16 @@ I had used to find it were dead.  Some internet sleuthing later, I found and con
 to send me the presentation again.  I have created this project to capture the code for others, as well as the
 presentation.  I can take credit for neither.
 
+### Maven
+```xml
+<dependency>
+   <groupId>com.zaxxer</groupId>
+   <artifactId>SparseBitSet</artifactId>
+   <version>1.0</version>
+   <scope>compile</scope>
+</dependency>
+```
+
 ### The Problem and Alternatives
 The standard Java BitSet is terribly memory inefficient.  To store a single bit using BitSet at bit 2<sup>32</sup>-1 takes
 2<sup>27</sup> 32-bit words (2<sup>26</sup> 64bit “words”), not counting any Java object overhead.
