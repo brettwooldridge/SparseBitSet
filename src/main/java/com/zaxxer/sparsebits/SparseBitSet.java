@@ -783,7 +783,8 @@ public class SparseBitSet implements Cloneable, Serializable
      *  a manner that bit <code>i</code> is set in the <code>SparseBitSet</code>
      *  (for nonnegative values of  <code>i</code>) if and only if the expression
      *  <pre>
-     *  ((i&gt;&gt;6) &lt; bits.length) && ((bits[i&gt;&gt;6] & (1L &lt;&lt; (bit & 0x3F))) != 0)</pre>
+     *  ((i&gt;&gt;6) &lt; bits.length) &amp;&amp; ((bits[i&gt;&gt;6] &amp; (1L &lt;&lt; (bit &amp; 0x3F))) != 0)
+     *  </pre>
      *  is true. Then the following definition of the <code>hashCode</code> method
      *  would be a correct implementation of the actual algorithm:
      *  <pre>
@@ -947,7 +948,7 @@ public class SparseBitSet implements Cloneable, Serializable
      *  sbs</code>, use the following loop:
      *
      *  <pre>
-     *  for( int i = sbbits.nextSetBit(0); i >= 0; i = sbbits.nextSetBit(i+1) )
+     *  for( int i = sbbits.nextSetBit(0); i &gt;= 0; i = sbbits.nextSetBit(i+1) )
      *  {
      *      // operate on index i here
      *  }</pre>
@@ -1276,22 +1277,24 @@ public class SparseBitSet implements Cloneable, Serializable
      *  are separated by ",&nbsp;" (a comma and a space) and surrounded by braces,
      *  resulting in a compact string showing (a variant of) the usual mathematical
      *  notation for a set of integers.
-     *  <p>
+     *  <br>
      *  Example (with the default value of 2 for subsequences):
      *  <pre>
-     *      SparseBitSet drPepper = new SparseBitSet();</pre>
+     *      SparseBitSet drPepper = new SparseBitSet();
+     *  </pre>
      *  Now <code>drPepper.toString()</code> returns "<code>{}</code>".
-     *  <p>
+     *  <br>
      *  <pre>
-     *      drPepper.set(2);</pre>
+     *      drPepper.set(2);
+     *  </pre>
      *  Now <code>drPepper.toString()</code> returns "<code>{2}</code>".
-     *  <p>
+     *  <br>
      *  <pre>
      *      drPepper.set(3, 4);
-     *      drPepper.set(10);</pre>
-     *  Now </code>drPepper.toString()</code> returns
-     *  "</code>{2..4, 10}</code>".
-     *  <p>
+     *      drPepper.set(10);
+     *  </pre>
+     *  Now <code>drPepper.toString()</code> returns "<code>{2..4, 10}</code>".
+     *  <br>
      *  This method is intended for diagnostic use (as it is relatively expensive
      *  in time), but can be useful in interpreting problems in an application's use
      *  of a <code>SparseBitSet</code>.
@@ -1357,7 +1360,7 @@ public class SparseBitSet implements Cloneable, Serializable
      *  or, for static methods, from the value belonging to the first parameter.
      *
      * @param       count the maximum count of a run of bits that are shown as
-     *              individual entries in a </code>toString</code>() conversion.
+     *              individual entries in a <code>toString</code>() conversion.
      *              If 0, all bits are shown individually.
      * @since       1.6
      * @see         #toString()
@@ -1855,9 +1858,9 @@ public class SparseBitSet implements Cloneable, Serializable
      *              <i>compactionCount</i> for the bit set, and then the 
      *              <i>length</i> of the set (the position of the last bit),
      *              followed by the <i>cache.count</i> value (an <code>int</code>,
-     *              the number of <code>int->long</code> pairs needed to describe
+     *              the number of <code>int-&gt;long</code> pairs needed to describe
      *              the set), followed by the index (<code>int</code>) and word
-     *              (<code>long</code>) for each <code>int->long</code> pair.
+     *              (<code>long</code>) for each <code>int-&gt;long</code> pair.
      *              The mappings need not be emitted in any particular order. This
      *              is followed by the <i>hashCode</i> for the set that can be used
      *              as an integrity check when the bit set is read back.
