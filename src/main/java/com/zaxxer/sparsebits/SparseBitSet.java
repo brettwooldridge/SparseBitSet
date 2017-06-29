@@ -144,6 +144,7 @@ public class SparseBitSet implements Cloneable, Serializable
     //  The critical parameters. These are set up so that the compiler may
     //  pre-compute all the values as compile-time constants.
     //==============================================================================
+
     /**
      *  The number of bits in a long value.
      */
@@ -215,7 +216,6 @@ public class SparseBitSet implements Cloneable, Serializable
      *  UNIT is the greatest number of bits that can be held in one level1 entry.
      *  That is, bits per word by words per level3 block by blocks per level2 area.
      */
-
     protected static final int UNIT = LENGTH2 * LENGTH3 * LENGTH4;
 
     /**
@@ -241,11 +241,6 @@ public class SparseBitSet implements Cloneable, Serializable
     //=============================================================================
     //  Stack structures used for recycling blocks
     //=============================================================================
-    // private static final int STACK_SIZE = 1000;
-
-    // private static final long[][] stack = new long[STACK_SIZE][LENGTH3];
-
-    // private static int stackIndex = 0;
 
     /**
      *  A spare level 3 block is kept for use when scanning. When a target block
@@ -421,7 +416,6 @@ public class SparseBitSet implements Cloneable, Serializable
      *              or <code>i</code> is larger than <code>j</code>
      * @since       1.6
      */
-
     public void and(int i, int j, SparseBitSet b) throws IndexOutOfBoundsException
     {
         setScanner(i, j, b, andStrategy);
@@ -579,7 +573,7 @@ public class SparseBitSet implements Cloneable, Serializable
         if ((a3 = a2[(w >> SHIFT2) & MASK2]) == null)
             return;
         a3[w & MASK3] &= ~(1L << i); //  Clear the indicated bit
-        cache.hash = 0; //  Invalidate size, etc., 
+        cache.hash = 0; //  Invalidate size, etc.,
     }
 
     /**
@@ -642,8 +636,9 @@ public class SparseBitSet implements Cloneable, Serializable
                 are linked to their parent object) (Not all visitors actually use
                 this link to their containing object, but they are reset here just
                 in case of  future changes). */
-            result.constructorHelper(); //  also creates the copyStrategy
-            result.setScanner(0, bitsLength, this, result.copyStrategy);
+            result.constructorHelper();
+            result.equalsStrategy = null;
+            result.setScanner(0, bitsLength, this, copyStrategy);
             return result;
         }
         catch (CloneNotSupportedException ex)
@@ -679,6 +674,9 @@ public class SparseBitSet implements Cloneable, Serializable
             return true; // Identity
 
         /*  Do the real work.  */
+        if (equalsStrategy == null)
+            equalsStrategy = new EqualsStrategy();
+
         setScanner(0, Math.max(bitsLength, b.bitsLength), b, equalsStrategy);
         return equalsStrategy.result;
     }
@@ -769,7 +767,7 @@ public class SparseBitSet implements Cloneable, Serializable
     public SparseBitSet get(int i, int j) throws IndexOutOfBoundsException
     {
         final SparseBitSet result = new SparseBitSet(j, compactionCount);
-        result.setScanner(i, j, this, result.copyStrategy);
+        result.setScanner(i, j, this, copyStrategy);
         return result;
     }
 
@@ -920,17 +918,20 @@ public class SparseBitSet implements Cloneable, Serializable
             w3 = w & MASK3;
             w2 = (w >> SHIFT2) & MASK2;
             w1 = w >> SHIFT1;
+            nword = ~0L;
             loop: for (; w1 != aLength; ++w1)
             {
-                if ((a2 = bits[w1]) != null)
-                    for (; w2 != LENGTH2; ++w2)
-                    {
-                        if ((a3 = a2[w2]) != null)
-                            for (; w3 != LENGTH3; ++w3)
-                                if ((nword = ~a3[w3]) != 0)
-                                    break loop;
-                        w3 = 0;
-                    }
+                if ((a2 = bits[w1]) == null)
+                    break;
+                for (; w2 != LENGTH2; ++w2)
+                {
+                    if ((a3 = a2[w2]) == null)
+                        break loop;
+                    for (; w3 != LENGTH3; ++w3)
+                        if ((nword = ~a3[w3]) != 0)
+                            break loop;
+                    w3 = 0;
+                }
                 w2 = w3 = 0;
             }
         }
@@ -1380,7 +1381,7 @@ public class SparseBitSet implements Cloneable, Serializable
      */
     public void toStringCompaction(boolean change)
     {
-        /*  This is an assignment to a static value: the integer value assignement
+        /*  This is an assignment to a static value: the integer value assignment
             is atomic, so there will not be a partial store. If multiple
             invocations are made from multiple threads, there is a race
             condition that cannot be resolved by synchronization. */
@@ -1488,6 +1489,7 @@ public class SparseBitSet implements Cloneable, Serializable
     //==============================================================================
     //      Internal methods
     //==============================================================================
+
     /**
      *  Throw the exception to indicate a range error. The <code>String</code>
      *  constructed reports all the possible errors in one message.
@@ -1497,7 +1499,7 @@ public class SparseBitSet implements Cloneable, Serializable
      * @exception   IndexOutOfBoundsException indicating the range is not valid
      * @since       1.6
      */
-    protected static final void throwIndexOutOfBoundsException(int i, int j)
+    protected static void throwIndexOutOfBoundsException(int i, int j)
             throws IndexOutOfBoundsException
     {
         String s = "";
@@ -1506,9 +1508,9 @@ public class SparseBitSet implements Cloneable, Serializable
         if (i == Integer.MAX_VALUE)
             s += "(i=" + i + ")";
         if (j < 0)
-            s += (s.length() == 0 ? "" : ", ") + "(j=" + j + ") < 0";
+            s += (s.isEmpty() ? "" : ", ") + "(j=" + j + ") < 0";
         if (i > j)
-            s += (s.length() == 0 ? "" : ", ") + "(i=" + i + ") > (j=" + j + ")";
+            s += (s.isEmpty() ? "" : ", ") + "(i=" + i + ") > (j=" + j + ")";
         throw new IndexOutOfBoundsException(s);
     }
 
@@ -1521,17 +1523,7 @@ public class SparseBitSet implements Cloneable, Serializable
     {
         spare = new long[LENGTH3];
         cache = new Cache();
-        andStrategy = new AndStrategy();
-        andNotStrategy = new AndNotStrategy();
-        clearStrategy = new ClearStrategy();
-        equalsStrategy = new EqualsStrategy();
-        flipStrategy = new FlipStrategy();
-        copyStrategy = new CopyStrategy();
-        intersectsStrategy = new IntersectsStrategy();
-        orStrategy = new OrStrategy();
-        setStrategy = new SetStrategy();
         updateStrategy = new UpdateStrategy();
-        xorStrategy = new XorStrategy();
     }
 
     /**
@@ -1627,7 +1619,9 @@ public class SparseBitSet implements Cloneable, Serializable
 
         /*  Do whatever the strategy needs to get started, and do whatever initial
             checking is needed--fail here if needed before much else is done. */
-        op.start(b);
+        if (op.start(b))
+            cache.hash = 0;
+
         if (j < i || (i + 1) < 1)
             throwIndexOutOfBoundsException(i, j);
         if (i == j)
@@ -1699,7 +1693,7 @@ public class SparseBitSet implements Cloneable, Serializable
             }
             else
             {
-                final int limit2 = (u1 != v1 ? LENGTH2 : v2 + 1);
+                final int limit2 = (u1 == v1 ? v2 + 1 : LENGTH2);
                 while (u2 != limit2)
                 {
                     /*  Similar logic applied here as for the level2 blocks.
@@ -1722,7 +1716,6 @@ public class SparseBitSet implements Cloneable, Serializable
                         /*  Do not need level3 block, so remove it, and move on. */
                         if (haveA2)
                             a2[u2] = null;
-                        u3 = 0;
                     }
                     else
                     {
@@ -1974,7 +1967,7 @@ public class SparseBitSet implements Cloneable, Serializable
      *
      * @see         #statistics(String[])
      */
-    public static enum Statistics
+    public enum Statistics
     {
         /**
          *  The size of the bit set, as give by the <i>size</i>() method.
@@ -2028,6 +2021,7 @@ public class SparseBitSet implements Cloneable, Serializable
     //=============================================================================
     //  A set of cached statistics values, recomputed when necessary
     //=============================================================================
+
     /**
      *  This class holds the values related to various statistics kept about the
      *  bit set. These values are not kept continuously up-to-date. Whenever the
@@ -2043,7 +2037,6 @@ public class SparseBitSet implements Cloneable, Serializable
          *  If the <i>hash</i> value is zero, it is assumed that <b><i>all</i></b>
          *  the cached values are stale, and must be updated.
          */
-
         protected transient int hash;
 
         /**
@@ -2092,6 +2085,7 @@ public class SparseBitSet implements Cloneable, Serializable
     //=============================================================================
     //  Abstract Strategy super-class for Strategies describing logical operations
     //=============================================================================
+
     /**
      *  This strategy class is used by the setScanner to carry out the a variety
      *  of operations on this set, and usually a second set. The
@@ -2105,7 +2099,7 @@ public class SparseBitSet implements Cloneable, Serializable
      *  @see SparseBitSet#setScanner(int i, int j,
      *                          SparseBitSet b, AbstractStrategy op)
      */
-    protected abstract class AbstractStrategy
+    protected abstract static class AbstractStrategy
     {
         /** If the operation requires that when matching level2 areas or level3
          *  blocks are null, that no action is required, then this property is
@@ -2160,8 +2154,9 @@ public class SparseBitSet implements Cloneable, Serializable
          *
          * @param       b the "other" set, for whatever checking is needed.
          * @since       1.6
+         * @return      true -> if the cache should be set to zero
          */
-        protected abstract void start(SparseBitSet b);
+        protected abstract boolean start(SparseBitSet b);
 
         /**
          *  Deal with a scan that include a partial word within a level3 block. All
@@ -2177,7 +2172,6 @@ public class SparseBitSet implements Cloneable, Serializable
          * @return      true if the resulting word is zero
          * @since       1.6
          */
-
         protected abstract boolean word(int base, int u3, long[] a3, long[] b3, long mask);
 
         /**
@@ -2228,6 +2222,7 @@ public class SparseBitSet implements Cloneable, Serializable
     //=============================================================================
     //  Strategies based on the Strategy super-class describing logical operations
     //=============================================================================
+
     /**
      *  And of two sets. Where the <i>a</i> set is zero, it remains zero (i.e.,
      *  without entries or with zero words). Similarly, where the <i>b</i> set is
@@ -2247,7 +2242,7 @@ public class SparseBitSet implements Cloneable, Serializable
      *    0| 0 0
      *    1| 0 1 <pre>
      */
-    protected class AndStrategy extends AbstractStrategy
+    protected static class AndStrategy extends AbstractStrategy
     {
         @Override
         //  AndStrategy
@@ -2258,11 +2253,11 @@ public class SparseBitSet implements Cloneable, Serializable
 
         @Override
         //  AndStrategy
-        protected void start(SparseBitSet b)
+        protected boolean start(SparseBitSet b)
         {
             if (b == null)
                 throw new NullPointerException();
-            cache.hash = 0;
+            return true;
         }
 
         @Override
@@ -2303,7 +2298,7 @@ public class SparseBitSet implements Cloneable, Serializable
      *      0| 0 0
      *      1| 1 0 <pre>
      */
-    protected class AndNotStrategy extends AbstractStrategy
+    protected static class AndNotStrategy extends AbstractStrategy
     {
         @Override
         //  AndNotStrategy
@@ -2314,11 +2309,11 @@ public class SparseBitSet implements Cloneable, Serializable
 
         @Override
         //  AndNotStrategy
-        protected void start(SparseBitSet b)
+        protected boolean start(SparseBitSet b)
         {
             if (b == null)
                 throw new NullPointerException();
-            cache.hash = 0;
+            return true;
         }
 
         @Override
@@ -2348,7 +2343,7 @@ public class SparseBitSet implements Cloneable, Serializable
      *     0| 0 0
      *     1| 0 0 <pre>
      */
-    protected class ClearStrategy extends AbstractStrategy
+    protected static class ClearStrategy extends AbstractStrategy
     {
         @Override
         //  ClearStrategy
@@ -2359,9 +2354,9 @@ public class SparseBitSet implements Cloneable, Serializable
 
         @Override
         //  ClearStrategy
-        protected void start(SparseBitSet b)
+        protected boolean start(SparseBitSet b)
         {
-            cache.hash = 0;
+            return true;
         }
 
         @Override
@@ -2391,7 +2386,7 @@ public class SparseBitSet implements Cloneable, Serializable
      *   0| 0 1
      *   1| 0 1 <pre>
      */
-    protected class CopyStrategy extends AbstractStrategy
+    protected static class CopyStrategy extends AbstractStrategy
     {
         @Override
         //  CopyStrategy
@@ -2402,9 +2397,9 @@ public class SparseBitSet implements Cloneable, Serializable
 
         @Override
         //  CopyStrategy
-        protected void start(SparseBitSet b)
+        protected boolean start(SparseBitSet b)
         {
-            cache.hash = 0;
+            return true;
         }
 
         @Override
@@ -2437,7 +2432,7 @@ public class SparseBitSet implements Cloneable, Serializable
      *      0| 0 -
      *      1| - - <pre>
      */
-    protected class EqualsStrategy extends AbstractStrategy
+    protected static class EqualsStrategy extends AbstractStrategy
     {
         boolean result; // Used to hold result of the comparison
 
@@ -2450,11 +2445,12 @@ public class SparseBitSet implements Cloneable, Serializable
 
         @Override
         //  EqualsStrategy
-        protected void start(SparseBitSet b)
+        protected boolean start(SparseBitSet b)
         {
             if (b == null)
-                throw new InternalError();
+                throw new NullPointerException();
             result = true;
+            return false;
             /*  Equals does not change the content of the set, hence hash need
                 not be reset. */
         }
@@ -2493,7 +2489,7 @@ public class SparseBitSet implements Cloneable, Serializable
      *    0| 1 1
      *    1| 0 0 <pre>
      */
-    protected class FlipStrategy extends AbstractStrategy
+    protected static class FlipStrategy extends AbstractStrategy
     {
         @Override
         // FlipStrategy
@@ -2504,9 +2500,9 @@ public class SparseBitSet implements Cloneable, Serializable
 
         @Override
         // FlipStrategy
-        protected void start(SparseBitSet b)
+        protected boolean start(SparseBitSet b)
         {
-            cache.hash = 0;
+            return true;
         }
 
         @Override
@@ -2541,7 +2537,7 @@ public class SparseBitSet implements Cloneable, Serializable
      *         0| 0 0
      *         1| 1 1 <pre>
      */
-    protected class IntersectsStrategy extends AbstractStrategy
+    protected static class IntersectsStrategy extends AbstractStrategy
     {
         /**
          *  The boolean result of the intersects scan Strategy is kept here.
@@ -2557,11 +2553,12 @@ public class SparseBitSet implements Cloneable, Serializable
 
         @Override
         //  IntersectsStrategy
-        protected void start(SparseBitSet b)
+        protected boolean start(SparseBitSet b)
         {
             if (b == null)
                 throw new NullPointerException();
             result = false;
+            return false;
             /*  Intersect does not change the content of the set, hence hash
                 need not be reset. */
         }
@@ -2604,7 +2601,7 @@ public class SparseBitSet implements Cloneable, Serializable
      *    0| 0 1
      *    1| 1 1 <pre>
      */
-    protected class OrStrategy extends AbstractStrategy
+    protected static class OrStrategy extends AbstractStrategy
     {
         @Override
         //  OrStrategy
@@ -2615,11 +2612,11 @@ public class SparseBitSet implements Cloneable, Serializable
 
         @Override
         //  OrStrategy
-        protected void start(SparseBitSet b)
+        protected boolean start(SparseBitSet b)
         {
             if (b == null)
                 throw new NullPointerException();
-            cache.hash = 0;
+            return true;
         }
 
         @Override
@@ -2651,7 +2648,7 @@ public class SparseBitSet implements Cloneable, Serializable
      *   0| 1 1
      *   1| 1 1 <pre>
      */
-    protected class SetStrategy extends AbstractStrategy
+    protected static class SetStrategy extends AbstractStrategy
     {
         @Override
         //  SetStrategy
@@ -2662,9 +2659,9 @@ public class SparseBitSet implements Cloneable, Serializable
 
         @Override
         //  SetStrategy
-        protected void start(SparseBitSet b)
+        protected boolean start(SparseBitSet b)
         {
-            cache.hash = 0;
+            return true;
         }
 
         @Override
@@ -2766,7 +2763,7 @@ public class SparseBitSet implements Cloneable, Serializable
          * @since       1.6
          */
         @Override
-        protected void start(SparseBitSet b)
+        protected boolean start(SparseBitSet b)
         {
             hash = 1234L; // Magic number
             wMin = -1; // index of first non-zero word
@@ -2775,6 +2772,7 @@ public class SparseBitSet implements Cloneable, Serializable
             wordMax = 0L; // word at that index
             count = 0; // count of non-zero words in whole set
             cardinality = 0; // count of non-zero bits in the whole set
+            return false;
         }
 
         @Override
@@ -2835,7 +2833,7 @@ public class SparseBitSet implements Cloneable, Serializable
         {
             /*  Count the number of actual words being used. */
             ++count;
-            /*  Contine to accumulate the hash value of the set. */
+            /*  Continue to accumulate the hash value of the set. */
             hash ^= word * (long) (index + 1);
             /*  The first non-zero word contains the first actual bit of the
                 set. The location of this bit is used to compute the set size. */
@@ -2862,7 +2860,7 @@ public class SparseBitSet implements Cloneable, Serializable
      *   0| 0 1
      *   1| 1 0 <pre>
      */
-    protected class XorStrategy extends AbstractStrategy
+    protected static class XorStrategy extends AbstractStrategy
     {
         @Override
         //  XorStrategy
@@ -2873,11 +2871,11 @@ public class SparseBitSet implements Cloneable, Serializable
 
         @Override
         //  XorStrategy
-        protected void start(SparseBitSet b)
+        protected boolean start(SparseBitSet b)
         {
             if (b == null)
                 throw new NullPointerException();
-            cache.hash = 0;
+            return true;
         }
 
         @Override
@@ -2902,19 +2900,19 @@ public class SparseBitSet implements Cloneable, Serializable
     /**
      *  Word and block <b>and</b> strategy.
      */
-    protected transient AndStrategy andStrategy;
+    protected static final transient AndStrategy andStrategy = new AndStrategy();
     /**
      *  Word and block <b>andNot</b> strategy.
      */
-    protected transient AndNotStrategy andNotStrategy;
+    protected static final transient AndNotStrategy andNotStrategy = new AndNotStrategy();
     /**
      *  Word and block <b>clear</b> strategy.
      */
-    protected transient ClearStrategy clearStrategy;
+    protected static final transient ClearStrategy clearStrategy = new ClearStrategy();
     /**
      *  Word and block <b>copy</b> strategy.
      */
-    protected transient CopyStrategy copyStrategy;
+    protected static final transient CopyStrategy copyStrategy = new CopyStrategy();
     /**
      *  Word and block <b>equals</b> strategy.
      */
@@ -2922,19 +2920,19 @@ public class SparseBitSet implements Cloneable, Serializable
     /**
      *  Word and block <b>flip</b> strategy.
      */
-    protected transient FlipStrategy flipStrategy;
+    protected static final transient FlipStrategy flipStrategy = new FlipStrategy();
     /**
      *  Word and block <b>intersects</b> strategy.
      */
-    protected transient IntersectsStrategy intersectsStrategy;
+    protected static transient IntersectsStrategy intersectsStrategy = new IntersectsStrategy();
     /**
      *  Word and block <b>or</b> strategy.
      */
-    protected transient OrStrategy orStrategy;
+    protected static final transient OrStrategy orStrategy = new OrStrategy();
     /**
      *  Word and block <b>set</b> strategy.
      */
-    protected transient SetStrategy setStrategy;
+    protected static final transient SetStrategy setStrategy = new SetStrategy();
     /**
      *  Word and block <b>update</b> strategy.
      */
@@ -2942,5 +2940,5 @@ public class SparseBitSet implements Cloneable, Serializable
     /**
      *  Word and block <b>xor</b> strategy.
      */
-    protected transient XorStrategy xorStrategy;
+    protected static final transient XorStrategy xorStrategy = new XorStrategy();
 }
