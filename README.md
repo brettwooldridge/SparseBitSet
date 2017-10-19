@@ -1,3 +1,8 @@
+[![][Build Status img]][Build Status]
+[![][license img]][license]
+[![][Maven Central img]][Maven Central]
+[![][Javadocs img]][Javadocs]
+
 SparseBitSet
 ============
 
@@ -39,3 +44,15 @@ Using a custom hash table, where the key is an int = bitvalue / 64, and the valu
 Using a virtual-memory like structure, the SparseBitSet overhead is ~0.03 32-bit words overhead per 64 bits.
 
 For a full analysis, read Dr. Haddon's [slide stack](https://github.com/brettwooldridge/SparseBitSet/blob/master/SparseBitSet.pdf).
+
+[Build Status]:https://travis-ci.org/brettwooldridge/SparseBitSet
+[Build Status img]:https://travis-ci.org/brettwooldridge/SparseBitSet.svg?branch=master
+
+[license]:LICENSE
+[license img]:https://img.shields.io/badge/license-Apache%202-blue.svg
+   
+[Maven Central]:https://maven-badges.herokuapp.com/maven-central/com.zaxxer/SparseBitSet
+[Maven Central img]:https://maven-badges.herokuapp.com/maven-central/com.zaxxer/SparseBitSet/badge.svg
+   
+[Javadocs]:http://javadoc.io/doc/com.zaxxer/SparseBitSet
+[Javadocs img]:http://javadoc.io/badge/com.zaxxer/SparseBitSet.svg
