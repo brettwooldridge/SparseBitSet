@@ -1044,42 +1044,43 @@ public class SparseBitSet implements Cloneable, Serializable
         if (w1 > aLength - 1)
             return i;
         w1 = Math.min(w1, aLength - 1);
-        /* The bit to search backwards from in the stored word */
-        final int maxBitIdx = Math.min(i % LENGTH4, LENGTH4);
+        final int w4 = i % LENGTH4;
 
         long word;
         long[][] a2;
         long[] a3;
 
-        /* A fake GOTO so we can break if we find an empty block rather than copy pasting the return code everywhere */
-        search:
+        final int f3 = w3;
+        final int f2 = w2;
+        final int f1 = w1;
+
+        for (; w1 >= 0; --w1)
         {
-            for (; w1 >= 0; --w1)
+            if ((a2 = bits[w1]) == null)
+                return (((w1 << SHIFT1) + (w2 << SHIFT2) + w3) << SHIFT3)
+                        + (f1 == w1 ? w4 : LENGTH4 - 1);
+            for (; w2 >= 0; --w2)
             {
-                if ((a2 = bits[w1]) == null)
-                    break search;
-                for (; w2 >= 0; --w2)
+                if ((a3 = a2[w2]) == null)
+                    return (((w1 << SHIFT1) + (w2 << SHIFT2) + w3) << SHIFT3)
+                            + (f2 == w2 ? w4 : LENGTH4 - 1);
+                for (; w3 >= 0; --w3)
                 {
-                    if ((a3 = a2[w2]) == null)
-                        break search;
-                    for (; w3 >= 0; --w3)
+                    if ((word = a3[w3]) == 0)
+                        return (((w1 << SHIFT1) + (w2 << SHIFT2) + w3) << SHIFT3)
+                                + (f3 == w3 ? w4 : LENGTH4 - 1);
+                    for (int bitIdx = w4; bitIdx >= 0; --bitIdx)
                     {
-                        if ((word = a3[w3]) == 0)
-                            break search;
-                        for (int bitIdx = maxBitIdx; bitIdx >= 0; --bitIdx)
-                        {
-                            if ((word & (1L << bitIdx)) == 0)
-                                return (((w1 << SHIFT1) + (w2 << SHIFT2) + w3) << SHIFT3) + bitIdx;
-                        }
+                        if ((word & (1L << bitIdx)) == 0)
+                            return (((w1 << SHIFT1) + (w2 << SHIFT2) + w3) << SHIFT3) + bitIdx;
                     }
-                    w3 = LENGTH3 - 1;
                 }
-                w2 = LENGTH2 - 1;
                 w3 = LENGTH3 - 1;
             }
-            return -1;
+            w2 = LENGTH2 - 1;
+            w3 = LENGTH3 - 1;
         }
-        return (((w1 << SHIFT1) + (w2 << SHIFT2) + w3) << SHIFT3) + maxBitIdx;
+        return -1;
     }
 
     /**
@@ -1110,29 +1111,40 @@ public class SparseBitSet implements Cloneable, Serializable
 
         /*  This is the word from which the search begins. */
         final int w = i >> SHIFT3;
-        int w3 = w & MASK3;
-        int w2 = (w >> SHIFT2) & MASK2;
-        int w1 = Math.min(w >> SHIFT1, aLength - 1);
-        /* The bit to search backwards from in the stored word. */
-        final int maxBitIdx = Math.min(i, LENGTH4);
+        int w1 = w >> SHIFT1;
+        int w2, w3, w4;
+        /*  But if its off the end of the array, start from the very end. */
+        if (w1 > aLength - 1)
+        {
+            w1 = aLength - 1;
+            w2 = LENGTH2 - 1;
+            w3 = LENGTH3 - 1;
+            w4 = LENGTH4 - 1;
+        }
+        else
+        {
+            w2 = (w >> SHIFT2) & MASK2;
+            w3 = w & MASK3;
+            w4 = i % LENGTH4;
+        }
+        boolean initialWord = true;
 
         long word;
         long[][] a2;
         long[] a3;
-        for (; w1 >= 0; --w1)
+        for (; w1 >= 0; --w1, initialWord = false)
         {
             if ((a2 = bits[w1]) != null)
-                for (; w2 >= 0; --w2)
+                for (; w2 >= 0; --w2, initialWord = false)
                 {
                     if ((a3 = a2[w2]) != null)
-                        for (; w3 >= 0; --w3)
+                        for (; w3 >= 0; --w3, initialWord = false)
                         {
                             if ((word = a3[w3]) != 0)
-                                for (int bitIdx = maxBitIdx; bitIdx >= 0; --bitIdx)
+                                for (int bitIdx = (initialWord ? w4 : LENGTH4 - 1); bitIdx >= 0; --bitIdx)
                                 {
                                     if ((word & (1L << bitIdx)) != 0)
-                                        return (((w1 << SHIFT1) + (w2 << SHIFT2) + w3) << SHIFT3)
-                                                + Long.numberOfTrailingZeros(word);
+                                        return (((w1 << SHIFT1) + (w2 << SHIFT2) + w3) << SHIFT3) + bitIdx;
                                 }
                         }
                     w3 = LENGTH3 - 1;
