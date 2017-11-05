@@ -12,7 +12,7 @@ import java.io.Serializable;
 /**
  *  This class implements a set of bits that grows as needed. Each bit of the
  *  bit set represents a <code>boolean</code> value. The values of a
- *  <code>SparseBitSet</code> are indexed by nonnegative integers.
+ *  <code>SparseBitSet</code> are indexed by non-negative integers.
  *  Individual indexed values may be examined, set, cleared, or modified by
  *  logical operations. One <code>SparseBitSet</code> or logical value may be
  *  used to modify the contents of (another) <code>SparseBitSet</code> through
@@ -31,9 +31,9 @@ import java.io.Serializable;
  *  <code>SparseBitSet</code> are labelled <code>
  *  0</code>&nbsp;..&nbsp;<code>Integer.MAX_VALUE&nbsp;&minus;&nbsp;1</code>.
  *  After the last set bit of a <code>SparseBitSet</code>, any attempt to find
- *  a subsequent bit (<i>getNextSetBit</i>()), will return an value of &minus;1.
- *  If an attempt is made to use <i>getNextClearBit</i>(), and all the bits are
- *  set from the starting postion of the search to the bit labelled
+ *  a subsequent bit (<i>nextSetBit</i>()), will return an value of &minus;1.
+ *  If an attempt is made to use <i>nextClearBit</i>(), and all the bits are
+ *  set from the starting position of the search to the bit labelled
  *  <code>Integer.MAX_VALUE&nbsp;&minus;&nbsp;1</code>, then similarly &minus;1
  *  will be returned.
  *  <p>
@@ -41,7 +41,7 @@ import java.io.Serializable;
  *  a <code>SparseBitSet</code> will result in a
  *  <code>NullPointerException</code>.
  *  <p>
- *  A <code>SparseBitSet</code> is not safe for multithreaded use without
+ *  A <code>SparseBitSet</code> is not safe for multi-threaded use without
  *  external synchronization.
  *
  * @author      Bruce K. Haddon
@@ -592,7 +592,7 @@ public class SparseBitSet implements Cloneable, Serializable
         setScanner(i, j, null, clearStrategy);
     }
 
-    /** 
+    /**
      *  Sets all of the bits in this <code>SparseBitSet</code> to
      *  <code>false</code>.
      *
@@ -651,8 +651,8 @@ public class SparseBitSet implements Cloneable, Serializable
 
     /**
      *  Compares this object against the specified object. The result is
-     *  <code>true</code> if and only if the argument is not <code>null</code> 
-     *  and is a <code>SparseBitSet</code> object that has exactly the same bits 
+     *  <code>true</code> if and only if the argument is not <code>null</code>
+     *  and is a <code>SparseBitSet</code> object that has exactly the same bits
      *  set to <code>true</code> as this bit set. That is, for every nonnegative
      *  <code>i</code> indexing a bit in the set,
      *  <pre>((SparseBitSet)obj).get(i) == this.get(i)</pre>
@@ -1012,6 +1012,138 @@ public class SparseBitSet implements Cloneable, Serializable
     }
 
     /**
+     * Returns the index of the nearest bit that is set to {@code false}
+     * that occurs on or before the specified starting index.
+     * If no such bit exists, or if {@code -1} is given as the
+     * starting index, then {@code -1} is returned.
+     *
+     * @param  i the index to start checking from (inclusive)
+     * @return the index of the previous clear bit, or {@code -1} if there
+     *         is no such bit
+     * @throws IndexOutOfBoundsException if the specified index is less
+     *         than {@code -1}
+     * @since  1.2
+     * @see java.util.BitSet#previousClearBit
+     */
+    public int previousClearBit(int i)
+    {
+        if (i < 0)
+        {
+            if (i == -1)
+                return -1;
+            throw new IndexOutOfBoundsException("i=" + i);
+        }
+
+        final long[][][] bits = this.bits;
+        final int aLength = bits.length;
+
+        int w = i >> SHIFT3;
+        int w3 = w & MASK3;
+        int w2 = (w >> SHIFT2) & MASK2;
+        int w1 = w >> SHIFT1;
+        if (w1 > aLength - 1)
+            return i;
+        w1 = Math.min(w1, aLength - 1);
+        /* The bit to search backwards from in the stored word */
+        final int maxBitIdx = Math.min(i % LENGTH4, LENGTH4);
+
+        long word;
+        long[][] a2;
+        long[] a3;
+
+        /* A fake GOTO so we can break if we find an empty block rather than copy pasting the return code everywhere */
+        search:
+        {
+            for (; w1 >= 0; --w1)
+            {
+                if ((a2 = bits[w1]) == null)
+                    break search;
+                for (; w2 >= 0; --w2)
+                {
+                    if ((a3 = a2[w2]) == null)
+                        break search;
+                    for (; w3 >= 0; --w3)
+                    {
+                        if ((word = a3[w3]) == 0)
+                            break search;
+                        for (int bitIdx = maxBitIdx; bitIdx >= 0; --bitIdx)
+                        {
+                            if ((word & (1L << bitIdx)) == 0)
+                                return (((w1 << SHIFT1) + (w2 << SHIFT2) + w3) << SHIFT3) + bitIdx;
+                        }
+                    }
+                    w3 = LENGTH3 - 1;
+                }
+                w2 = LENGTH2 - 1;
+                w3 = LENGTH3 - 1;
+            }
+            return -1;
+        }
+        return (((w1 << SHIFT1) + (w2 << SHIFT2) + w3) << SHIFT3) + maxBitIdx;
+    }
+
+    /**
+     * Returns the index of the nearest bit that is set to {@code true}
+     * that occurs on or before the specified starting index.
+     * If no such bit exists, or if {@code -1} is given as the
+     * starting index, then {@code -1} is returned.
+     *
+     * @param  i the index to start checking from (inclusive)
+     * @return the index of the previous set bit, or {@code -1} if there
+     *         is no such bit
+     * @throws IndexOutOfBoundsException if the specified index is less
+     *         than {@code -1}
+     * @since  1.2
+     * @see java.util.BitSet#previousSetBit
+     */
+    public int previousSetBit(int i)
+    {
+        if (i < 0)
+        {
+            if (i == -1)
+                return -1;
+            throw new IndexOutOfBoundsException("i=" + i);
+        }
+
+        final long[][][] bits = this.bits;
+        final int aLength = bits.length;
+
+        /*  This is the word from which the search begins. */
+        final int w = i >> SHIFT3;
+        int w3 = w & MASK3;
+        int w2 = (w >> SHIFT2) & MASK2;
+        int w1 = Math.min(w >> SHIFT1, aLength - 1);
+        /* The bit to search backwards from in the stored word. */
+        final int maxBitIdx = Math.min(i, LENGTH4);
+
+        long word;
+        long[][] a2;
+        long[] a3;
+        for (; w1 >= 0; --w1)
+        {
+            if ((a2 = bits[w1]) != null)
+                for (; w2 >= 0; --w2)
+                {
+                    if ((a3 = a2[w2]) != null)
+                        for (; w3 >= 0; --w3)
+                        {
+                            if ((word = a3[w3]) != 0)
+                                for (int bitIdx = maxBitIdx; bitIdx >= 0; --bitIdx)
+                                {
+                                    if ((word & (1L << bitIdx)) != 0)
+                                        return (((w1 << SHIFT1) + (w2 << SHIFT2) + w3) << SHIFT3)
+                                                + Long.numberOfTrailingZeros(word);
+                                }
+                        }
+                    w3 = LENGTH3 - 1;
+                }
+            w2 = LENGTH2 - 1;
+            w3 = LENGTH3 - 1;
+        }
+        return -1;
+    }
+
+    /**
      *  Performs a logical <b>OR</b> of the addressed target bit with the
      *  argument value. This bit set is modified so that the addressed bit has the
      *  value <code>true</code> if and only if it both initially had the value
@@ -1352,7 +1484,7 @@ public class SparseBitSet implements Cloneable, Serializable
     /** Sequences of set bits longer than this value are shown by
      *  {@link #toString()} as a "sub-sequence," in the form <code>a..b</code>.
      *  Setting this value to zero causes each set bit to be listed individually.
-     *  The default default value is 2 (which means sequences of three or more 
+     *  The default default value is 2 (which means sequences of three or more
      *  bits set are shown as a subsequence, and all other set bits are listed
      *  individually).
      *  <p>
@@ -1839,7 +1971,7 @@ public class SparseBitSet implements Cloneable, Serializable
     //==============================================================================
 
     /**
-     *  Save the state of the <code>SparseBitSet</code> instance to a stream 
+     *  Save the state of the <code>SparseBitSet</code> instance to a stream
      *  (<i>i.e.</i>, serialize it).
      *
      * @param       s the ObjectOutputStream to which to write the serialized object
@@ -1848,7 +1980,7 @@ public class SparseBitSet implements Cloneable, Serializable
      *              inconsistent
      *
      * @serialData  The default data is emitted, followed by the current
-     *              <i>compactionCount</i> for the bit set, and then the 
+     *              <i>compactionCount</i> for the bit set, and then the
      *              <i>length</i> of the set (the position of the last bit),
      *              followed by the <i>cache.count</i> value (an <code>int</code>,
      *              the number of <code>int-&gt;long</code> pairs needed to describe
@@ -1902,7 +2034,7 @@ public class SparseBitSet implements Cloneable, Serializable
     private static final long serialVersionUID = -6663013367427929992L;
 
     /**
-     *  Reconstitute the <code>SparseBitSet</code> instance from a stream 
+     *  Reconstitute the <code>SparseBitSet</code> instance from a stream
      *  (<i>i.e.</i>, deserialize it).
      *
      * @param       s the ObjectInputStream to use
