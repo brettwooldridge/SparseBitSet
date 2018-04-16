@@ -1714,7 +1714,7 @@ public class SparseBitSet implements Cloneable, Serializable
             newSize = MAX_LENGTH1;
         final int aLength1 = (bits != null ? bits.length : 0);
 
-        if (newSize != aLength1)
+        if (newSize != aLength1 || bits == null)
         { // only if the size needs to be changed
             final long[][][] temp = new long[newSize][][]; //  Get the new array
             if (aLength1 != 0)
