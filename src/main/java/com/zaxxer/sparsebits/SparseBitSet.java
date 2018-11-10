@@ -231,6 +231,21 @@ public class SparseBitSet implements Cloneable, Serializable
     protected static final int SHIFT1 = LEVEL2 + LEVEL3;
 
     /**
+     *  LENGTH2_SIZE is maximum index of a LEVEL2 page.
+     */
+    protected static final int LENGTH2_SIZE = LENGTH2 - 1;
+
+    /**
+     *  LENGTH3_SIZE is maximum index of a LEVEL3 page.
+     */
+    protected static final int LENGTH3_SIZE = LENGTH3 - 1;
+
+    /**
+     *  LENGTH4_SIZE is maximum index of a bit in a LEVEL4 word.
+     */
+    protected static final int LENGTH4_SIZE = LENGTH4 - 1;
+
+    /**
      *  Holds reference to the cache of statistics values computed by the
      *  UpdateStrategy
      * @see SparseBitSet.Cache
@@ -1035,50 +1050,43 @@ public class SparseBitSet implements Cloneable, Serializable
         }
 
         final long[][][] bits = this.bits;
-        final int aLength = bits.length;
+        final int aSize = bits.length - 1;
 
         int w = i >> SHIFT3;
         int w3 = w & MASK3;
         int w2 = (w >> SHIFT2) & MASK2;
         int w1 = w >> SHIFT1;
-        if (w1 > aLength - 1)
+        if (w1 > aSize)
             return i;
-        w1 = Math.min(w1, aLength - 1);
-        final int w4 = i % LENGTH4;
+        w1 = Math.min(w1, aSize);
+        int w4 = i % LENGTH4;
 
         long word;
         long[][] a2;
         long[] a3;
 
-        final int f3 = w3;
-        final int f2 = w2;
-        final int f1 = w1;
-
         for (; w1 >= 0; --w1)
         {
             if ((a2 = bits[w1]) == null)
-                return (((w1 << SHIFT1) + (w2 << SHIFT2) + w3) << SHIFT3)
-                        + (f1 == w1 ? w4 : LENGTH4 - 1);
+                return (((w1 << SHIFT1) + (w2 << SHIFT2) + w3) << SHIFT3) + w4;
             for (; w2 >= 0; --w2)
             {
                 if ((a3 = a2[w2]) == null)
-                    return (((w1 << SHIFT1) + (w2 << SHIFT2) + w3) << SHIFT3)
-                            + (f2 == w2 ? w4 : LENGTH4 - 1);
+                    return (((w1 << SHIFT1) + (w2 << SHIFT2) + w3) << SHIFT3) + w4;
                 for (; w3 >= 0; --w3)
                 {
                     if ((word = a3[w3]) == 0)
-                        return (((w1 << SHIFT1) + (w2 << SHIFT2) + w3) << SHIFT3)
-                                + (f3 == w3 ? w4 : LENGTH4 - 1);
+                        return (((w1 << SHIFT1) + (w2 << SHIFT2) + w3) << SHIFT3) + w4;
                     for (int bitIdx = w4; bitIdx >= 0; --bitIdx)
                     {
                         if ((word & (1L << bitIdx)) == 0)
                             return (((w1 << SHIFT1) + (w2 << SHIFT2) + w3) << SHIFT3) + bitIdx;
                     }
+                    w4 = LENGTH4_SIZE;
                 }
-                w3 = LENGTH3 - 1;
+                w3 = LENGTH3_SIZE;
             }
-            w2 = LENGTH2 - 1;
-            w3 = LENGTH3 - 1;
+            w2 = LENGTH2_SIZE;
         }
         return -1;
     }
@@ -1107,19 +1115,19 @@ public class SparseBitSet implements Cloneable, Serializable
         }
 
         final long[][][] bits = this.bits;
-        final int aLength = bits.length;
+        final int aSize = bits.length - 1;
 
         /*  This is the word from which the search begins. */
         final int w = i >> SHIFT3;
         int w1 = w >> SHIFT1;
         int w2, w3, w4;
         /*  But if its off the end of the array, start from the very end. */
-        if (w1 > aLength - 1)
+        if (w1 > aSize)
         {
-            w1 = aLength - 1;
-            w2 = LENGTH2 - 1;
-            w3 = LENGTH3 - 1;
-            w4 = LENGTH4 - 1;
+            w1 = aSize;
+            w2 = LENGTH2_SIZE;
+            w3 = LENGTH3_SIZE;
+            w4 = LENGTH4_SIZE;
         }
         else
         {
@@ -1127,30 +1135,31 @@ public class SparseBitSet implements Cloneable, Serializable
             w3 = w & MASK3;
             w4 = i % LENGTH4;
         }
-        boolean initialWord = true;
-
         long word;
         long[][] a2;
         long[] a3;
-        for (; w1 >= 0; --w1, initialWord = false)
+        for (; w1 >= 0; --w1)
         {
             if ((a2 = bits[w1]) != null)
-                for (; w2 >= 0; --w2, initialWord = false)
+                for (; w2 >= 0; --w2)
                 {
                     if ((a3 = a2[w2]) != null)
-                        for (; w3 >= 0; --w3, initialWord = false)
+                        for (; w3 >= 0; --w3)
                         {
                             if ((word = a3[w3]) != 0)
-                                for (int bitIdx = (initialWord ? w4 : LENGTH4 - 1); bitIdx >= 0; --bitIdx)
+                                for (int bitIdx = w4; bitIdx >= 0; --bitIdx)
                                 {
                                     if ((word & (1L << bitIdx)) != 0)
                                         return (((w1 << SHIFT1) + (w2 << SHIFT2) + w3) << SHIFT3) + bitIdx;
                                 }
+                            w4 = LENGTH4_SIZE;
                         }
-                    w3 = LENGTH3 - 1;
+                    w3 = LENGTH3_SIZE;
+                    w4 = LENGTH4_SIZE;
                 }
-            w2 = LENGTH2 - 1;
-            w3 = LENGTH3 - 1;
+            w2 = LENGTH2_SIZE;
+            w3 = LENGTH3_SIZE;
+            w4 = LENGTH4_SIZE;
         }
         return -1;
     }
