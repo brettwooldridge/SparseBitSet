@@ -206,4 +206,14 @@ public class PreviousClearBitTest extends Assert {
             values.clear();
         }
     }
+
+    @Test
+    public void bug15() throws Exception {
+        set.set(1);
+        set.set(64);
+        assertEquals(63, set.previousClearBit(64));
+        set.clear(0);
+        set.set(1);
+        assertEquals(63, set.previousClearBit(64));
+    }
 }
