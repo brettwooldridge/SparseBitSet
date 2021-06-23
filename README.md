@@ -23,7 +23,7 @@ presentation.  I can take credit for neither.
 <dependency>
    <groupId>com.zaxxer</groupId>
    <artifactId>SparseBitSet</artifactId>
-   <version>1.1</version>
+   <version>1.2</version>
    <scope>compile</scope>
 </dependency>
 ```
