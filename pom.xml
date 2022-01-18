@@ -70,6 +70,17 @@
          </plugin>
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <configuration>
+               <archive>
+                  <manifestEntries>
+                     <Automatic-Module-Name>com.zaxxer.sparsebitset</Automatic-Module-Name>
+                  </manifestEntries>
+               </archive>
+            </configuration>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-source-plugin</artifactId>
             <version>2.2.1</version>
             <configuration>
