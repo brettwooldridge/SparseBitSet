@@ -8,7 +8,7 @@ SparseBitSet
 
 ### TL;DR
 Basically, if you need to set a large number of bits, or bits at extremely high offsets, you probably want to use this 
-Sparse BitSet.  All other alternatives are essentialy off the table; the Java BitSet class is a non-starter.  Performance
+Sparse BitSet.  All other alternatives are essentially off the table; the Java BitSet class is a non-starter.  Performance
 is superior in almost all cases to the standard Java BitSet.
 
 ### Preface
