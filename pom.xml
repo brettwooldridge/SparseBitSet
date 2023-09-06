@@ -16,9 +16,9 @@
    </organization>
 
    <scm>
-      <connection>scm:git:git@github.com:brettwooldridge/SparseBitSet.git</connection>
-      <developerConnection>scm:git:git@github.com:brettwooldridge/SparseBitSet.git</developerConnection>
-      <url>git@github.com:brettwooldridge/SparseBitSet.git</url>
+      <connection>scm:git:https://github.com/brettwooldridge/SparseBitSet.git</connection>
+      <developerConnection>scm:git:https://github.com/brettwooldridge/SparseBitSet.git</developerConnection>
+      <url>https://github.com/brettwooldridge/SparseBitSet.git</url>
    </scm>
 
    <licenses>
