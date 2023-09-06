@@ -1058,7 +1058,7 @@ public class SparseBitSet implements Cloneable, Serializable
         int w1 = w >> SHIFT1;
         if (w1 > aSize)
             return i;
-        w1 = Math.min(w1, aSize);
+
         int w4 = i % LENGTH4;
 
         long word;
