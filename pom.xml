@@ -3,7 +3,7 @@
 
    <groupId>com.zaxxer</groupId>
    <artifactId>SparseBitSet</artifactId>
-   <version>1.3</version>
+   <version>1.4-SNAPSHOT</version>
    <packaging>jar</packaging>
 
    <name>SparseBitSet</name>
