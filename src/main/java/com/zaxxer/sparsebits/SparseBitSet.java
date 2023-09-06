@@ -642,7 +642,7 @@ public class SparseBitSet implements Cloneable, Serializable
             final SparseBitSet result = (SparseBitSet) super.clone();
             /*  Clear out the shallow copy of the set array (which contains just
                 copies of the references from this set), and then replace these
-                by a deep copy (created by a "copy" from the set being cloned . */
+                by a deep copy (created by a "copy" from the set being cloned). */
             result.bits = null;
             result.resize(1);
             /*  Ensure the clone is not sharing a copy of a spare block with
@@ -658,7 +658,7 @@ public class SparseBitSet implements Cloneable, Serializable
         catch (CloneNotSupportedException ex)
         {
             /*  This code has not been unit tested. Inspection offers hope
-                that is will work, but it likely never to be used. */
+                that will work, but it likely never to be used. */
             throw new InternalError(ex.getMessage());
         }
     }
@@ -903,7 +903,7 @@ public class SparseBitSet implements Cloneable, Serializable
             nextSetBit()--as might happen if a search for the next clear bit is
             started after finding a set bit labelled Integer.MAX_VALUE-1. This
             case is not optimised, the code will eventually return -1 (since
-            the Integer.MAX_VALUEth bit does "exist," and is 0. */
+            the Integer.MAX_VALUEth bit does "exist," and is 0). */
 
         if (i < 0)
             throw new IndexOutOfBoundsException("i=" + i);
@@ -1057,7 +1057,7 @@ public class SparseBitSet implements Cloneable, Serializable
         int w1 = w >> SHIFT1;
         if (w1 > aSize)
             return i;
-        w1 = Math.min(w1, aSize);
+
         int w4 = i % LENGTH4;
 
         long word;
@@ -1751,7 +1751,8 @@ public class SparseBitSet implements Cloneable, Serializable
      *              operation
      * @param       op the AbstractStrategy class defining the operation to be
      *              executed
-     * @exception   IndexOutOfBoundsException
+     * @exception   IndexOutOfBoundsException if <code>i</code> is negative or
+     *              <code>i</code> is larger than <code>j</code>
      * @since       1.6
      * @see         AbstractStrategy
      */
@@ -2239,7 +2240,7 @@ public class SparseBitSet implements Cloneable, Serializable
     //=============================================================================
 
     /**
-     *  This strategy class is used by the setScanner to carry out the a variety
+     *  This strategy class is used by the setScanner to carry out the variety
      *  of operations on this set, and usually a second set. The
      *  <i>setScanner</i>() method of the main <code>SparseBitSet</code> class
      *  essentially finds matching level3 blocks, and then calls the strategy to
@@ -2258,7 +2259,7 @@ public class SparseBitSet implements Cloneable, Serializable
          *  required. Corresponds to the top-left entry in the logic diagram for the
          *  operation being 0. For all the defined actual logic operations ('and',
          *  'andNot', 'or', and 'xor', this will be true, because for all these,
-         *  "false" op "false" = "false".
+         *  "false" op "false" = "false").
          */
         static final int F_OP_F_EQ_F = 0x1;
 
@@ -2267,7 +2268,7 @@ public class SparseBitSet implements Cloneable, Serializable
          *  the matching structure from the other set, then this property is required.
          *  Corresponds to the first row in the logic diagram being all zeros. For
          *  example, this is true for 'and' as well as 'andNot', and for 'clear', since
-         *  false" & "x" = "false", and "false" &! "x" = "false".
+         *  "false" & "x" = "false", and "false" &! "x" = "false".
          */
         static final int F_OP_X_EQ_F = 0x2;
 
@@ -2302,7 +2303,7 @@ public class SparseBitSet implements Cloneable, Serializable
          *  particular use, an instance is (re-)started by calling this method. It is
          *  passed the reference to the other bit set (usually to allow a check on
          *  whether it is null or not, so as to simplify the implementation of the
-         *  <i>block</i>() method.
+         *  <i>block</i>() method).
          *
          * @param       b the "other" set, for whatever checking is needed.
          * @since       1.6
