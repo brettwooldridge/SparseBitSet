@@ -99,7 +99,7 @@ public class SparseBitSet implements Cloneable, Serializable
         bits (setting, flipping, clearing, etc.) do not attempt to normalize the
         set, in the interests of speed. However, when a set is scanned as the
         resultant set of some operation, then, in most cases, the set will be
-        normalized--the exception being level2 areas that are not completly scanned
+        normalized--the exception being level2 areas that are not completely scanned
         in a particular pass.
 
         The sizes of the blocks and areas has been the result of some investigation
@@ -337,8 +337,8 @@ public class SparseBitSet implements Cloneable, Serializable
      *  needed actions to initialise the bit set.
      *  <p>
      *  The capacity is taken to be a <i>suggestion</i> for a size of the bit set,
-     *  in bits. An appropiate table size (a power of two) is then determined and
-     *  used. The size will be grown as needed to accomodate any bits addressed
+     *  in bits. An appropriate table size (a power of two) is then determined and
+     *  used. The size will be grown as needed to accommodate any bits addressed
      *  during the use of the bit set.
      *
      * @param       capacity a size in terms of bits
@@ -529,7 +529,7 @@ public class SparseBitSet implements Cloneable, Serializable
     }
 
     /**
-     *  Creates a bit set from thie first <code>SparseBitSet</code> whose
+     *  Creates a bit set from the first <code>SparseBitSet</code> whose
      *  corresponding bits are cleared by the set bits of the second
      *  <code>SparseBitSet</code>. The resulting bit set is created so that a bit
      *  in it has the value <code>true</code> if and only if the corresponding bit
@@ -608,7 +608,7 @@ public class SparseBitSet implements Cloneable, Serializable
     }
 
     /**
-     *  Sets all of the bits in this <code>SparseBitSet</code> to
+     *  Sets all the bits in this <code>SparseBitSet</code> to
      *  <code>false</code>.
      *
      * @since       1.6
@@ -1505,7 +1505,7 @@ public class SparseBitSet implements Cloneable, Serializable
     /** Sequences of set bits longer than this value are shown by
      *  {@link #toString()} as a "sub-sequence," in the form <code>a..b</code>.
      *  Setting this value to zero causes each set bit to be listed individually.
-     *  The default default value is 2 (which means sequences of three or more
+     *  The default value is 2 (which means sequences of three or more
      *  bits set are shown as a subsequence, and all other set bits are listed
      *  individually).
      *  <p>
@@ -1647,8 +1647,8 @@ public class SparseBitSet implements Cloneable, Serializable
      *  Throw the exception to indicate a range error. The <code>String</code>
      *  constructed reports all the possible errors in one message.
      *
-     * @param       i lower bound for a operation
-     * @param       j upper bound for a operation
+     * @param       i lower bound for an operation
+     * @param       j upper bound for an operation
      * @exception   IndexOutOfBoundsException indicating the range is not valid
      * @since       1.6
      */
@@ -1668,7 +1668,7 @@ public class SparseBitSet implements Cloneable, Serializable
     }
 
     /**
-     *  Intializes all the additional objects required for correct operation.
+     *  Initializes all the additional objects required for correct operation.
      *
      * @since       1.6
      */
@@ -1699,7 +1699,7 @@ public class SparseBitSet implements Cloneable, Serializable
     }
 
     /**
-     *  Resize the bit array. Moves the entries in the the bits array of this
+     *  Resize the bit array. Moves the entries in the bits array of this
      *  SparseBitSet into an array whose size (which may be larger or smaller) is
      *  the given bit size (<i>i.e.</i>, includes the bit whose index is one less
      *  that the given value). If the new array is smaller, the excess entries in
@@ -1762,11 +1762,11 @@ public class SparseBitSet implements Cloneable, Serializable
         /*  This method has been assessed as having a McCabe cyclomatic
             complexity of 47 (i.e., impossibly high). However, given that this
             method incorporates all the set scanning logic for all methods
-            (with the exception of nextSetBit and nextClearBit, which themselves
+            (except for nextSetBit and nextClearBit, which themselves
             have high cyclomatic complexities of 13), and is attempting to minimise
             execution time (hence deals with processing shortcuts), it cannot be
             expected to be simple. In fact, the work of lining up level3 blocks
-            proceeds step-wise, and each sub-section piece is reasonably
+            proceeds step-wise, and each subsection piece is reasonably
             straight-forward. Nevertheless, the number of paths is high, and
             caution is advised in attempting to correct anything. */
 
@@ -1834,7 +1834,7 @@ public class SparseBitSet implements Cloneable, Serializable
                     && b1 != null && (b2 = b1[u1]) != null;
             /*  Handling of level 2 empty areas: determined by the
                 properties of the strategy. It is necessary to actually visit
-                the first and last blocks of a scan, since not all of the block
+                the first and last blocks of a scan, since not all the block
                 might participate in the operation, hence making decision based
                 on just the references to the blocks could be wrong. */
             if ((!haveA2 && !haveB2 && f_op_f_eq_f
@@ -2263,12 +2263,12 @@ public class SparseBitSet implements Cloneable, Serializable
          */
         static final int F_OP_F_EQ_F = 0x1;
 
-        /** If when level2 areas or level3 areas from the this set are null will
+        /** If when level2 areas or level3 areas from this set are null will
          *  require that area or block to remain null, irrespective of the value of
          *  the matching structure from the other set, then this property is required.
          *  Corresponds to the first row in the logic diagram being all zeros. For
          *  example, this is true for 'and' as well as 'andNot', and for 'clear', since
-         *  false" & "x" = "false", and "false" &! "x" = "false".
+         *  "false" & "x" = "false", and "false" &! "x" = "false".
          */
         static final int F_OP_X_EQ_F = 0x2;
 
@@ -2302,8 +2302,8 @@ public class SparseBitSet implements Cloneable, Serializable
          *  Instances of this class are to be serially reusable. To start a
          *  particular use, an instance is (re-)started by calling this method. It is
          *  passed the reference to the other bit set (usually to allow a check on
-         *  whether it is null or not, so as to simplify the implementation of the
-         *  <i>block</i>() method.
+         *  whether it is null or not, to simplify the implementation of the
+         *  <i>block</i>) method.
          *
          * @param       b the "other" set, for whatever checking is needed.
          * @since       1.6
@@ -2315,7 +2315,7 @@ public class SparseBitSet implements Cloneable, Serializable
          *  Deal with a scan that include a partial word within a level3 block. All
          *  that is required is that the result be stored (if needed) into the
          *  given a set block at the correct position, and that the operation only
-         *  affect those bits selected by 1 bits in the mask.
+         *  affect those bits selected by 1 bit in the mask.
          *
          * @param       base the base index of the block (to be used if needed)
          * @param       u3 the index of the word within block
@@ -2792,7 +2792,7 @@ public class SparseBitSet implements Cloneable, Serializable
 
     //-----------------------------------------------------------------------------
     /**
-     *  Set creates entries everywhere within the range. Hence no empty level2
+     *  Set creates entries everywhere within the range. Hence, no empty level2
      *  areas or level3 blocks are ignored, and no empty (all zero) blocks are
      *  returned.
      *
@@ -2999,7 +2999,7 @@ public class SparseBitSet implements Cloneable, Serializable
                 The location of this bit is used to compute the set length. */
             wMax = index;
             wordMax = word;
-            /*  Count the actual bits, so as to get the cardinality of the set. */
+            /*  Count the actual bits, to get the cardinality of the set. */
             cardinality += Long.bitCount(word);
         }
     }
